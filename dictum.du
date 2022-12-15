@@ -1,0 +1,101 @@
+#!/usr/bin/env dictu
+
+import Env;
+import HTTP;
+import JSON;
+import Path;
+import Process;
+import System;
+
+from Argparse import Parser;
+
+const VERSION = "v0.1.0",
+      USAGE = "Usage: {} <command> <args>
+
+Options:
+    install       install the given module
+    uninstall     uninstall the given module
+    modinfo       get the info for the given module
+    help          help menu
+    version       version information
+
+Examples: 
+    {}            start server. http://localhost:8000
+";
+
+const GLOBAL_MODS = "/usr/local/lib/dictu",
+      LOCAL_MODS  = "{}/.dictu";
+
+// setupEnv
+def setupEnv() {
+    const home = Env.get("HOME");
+    const dictuLocalModsPath = LOCAL_MODS.format(home);
+
+    if (not Path.exits(dictuLocalModsPath)) {
+        System.mkdir(dictuLocalModsPath, 0774);
+    }
+
+    if (not Path.exists(GLOBAL_MODS)) {
+        System.mkdir(GLOBAL_MODS, 0774);
+    }
+}
+
+// parseModuleConfig
+def parseModuleConfig(modPath) {
+    const versionFile = modPath + "/dictum.json";
+
+    with(versionFile, "r") {
+        return config = JSON.parse(file.read()).match(
+            def(result) => result, 
+            def(error) => {
+                print(error);
+                return;
+            }
+        );
+    }
+}
+
+{ // main
+    const usage = USAGE.format("dictum", "dictum");
+
+    if (System.argv.len() < 2) {
+        print(usage);
+        System.exit(1);
+    }
+
+    setupEnv();
+
+    switch (System.argv[1]) {
+        case "install": {
+            const modName = System.argv[2];
+            
+        }
+        case "uninstall": {
+            const modName = System.argv[2];
+            const home = Env.get("HOME");
+            const dictuLocalModsPath = LOCAL_MODS.format(home);
+
+            if (Path.exists("{}/{}".format(dictuLocalModsPath, modName))) {
+                System.rmdir(dictuLocalModsPath);
+            }
+            if (Path.exists("{}/{}".format(GLOBAL_MODS, modName))) {
+                System.rmdir(GLOBAL_MODS);
+            }
+        }
+        case "modinfo": {
+            print(usage);
+        }
+        case "help": {
+            print(usage);
+        }
+        case "version": {
+            print("version: {}".format(VERSION));
+        }
+        default: {
+            print("error: unkown command {}".format(System.argv[1]));
+            System.exit(1);
+        }
+    }
+
+    System.exit(0);
+}

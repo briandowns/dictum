@@ -1,0 +1,10 @@
+{
+    "name": "slog",
+    "version": "v0.1.0",
+    "license": "bsd2clause",
+    "maintainers": {
+        "name": "Brian Downs",
+        "email": "brian.downs@gmail.com"
+    },
+    "dependencies": []
+}
