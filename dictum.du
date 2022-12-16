@@ -10,7 +10,7 @@ import System;
 from Argparse import Parser;
 
 const VERSION = "v0.1.0",
-      USAGE = "Usage: {} <command> <args>
+      USAGE = "Usage: dictum <command> <args>
 
 Options:
     install       install the given module
@@ -20,24 +20,41 @@ Options:
     version       version information
 
 Examples: 
-    {}            start server. http://localhost:8000
+    dictum install slog
+
 ";
 
-const GLOBAL_MODS = "/usr/local/lib/dictu",
-      LOCAL_MODS  = "{}/.dictu";
+const GLOBAL_MODS   = "/usr/local/lib/dictu",
+      LOCAL_MODS    = "{}/.dictu",
+      MOD_DATA_FILE = "dictum.json";
 
 // setupEnv
 def setupEnv() {
     const home = Env.get("HOME");
     const dictuLocalModsPath = LOCAL_MODS.format(home);
 
-    if (not Path.exits(dictuLocalModsPath)) {
-        System.mkdir(dictuLocalModsPath, 0774);
+    if (not Path.exists(dictuLocalModsPath)) {
+        System.mkdir(dictuLocalModsPath);
     }
 
     if (not Path.exists(GLOBAL_MODS)) {
-        System.mkdir(GLOBAL_MODS, 0774);
+        System.mkdir(GLOBAL_MODS);
     }
+}
+
+// findModule
+def findModule(name) {
+    const home = Env.get("HOME");
+    const dictuLocalModsPath = LOCAL_MODS.format(home);
+
+    if (Path.exists("{}/{}".format(dictuLocalModsPath, name))) {
+        return Success("{}/{}".format(dictuLocalModsPath, name));
+    }
+    if (Path.exists("{}/{}".format(GLOBAL_MODS, name))) {
+        return Success("{}/{}".format(GLOBAL_MODS, name));
+    }
+
+    return Error("not found");
 }
 
 // parseModuleConfig
@@ -56,24 +73,22 @@ def parseModuleConfig(modPath) {
 }
 
 { // main
-    const usage = USAGE.format("dictum", "dictum");
-
     if (System.argv.len() < 2) {
-        print(usage);
+        print(USAGE);
         System.exit(1);
     }
 
     setupEnv();
 
+    const home = Env.get("HOME");
+    const dictuLocalModsPath = LOCAL_MODS.format(home);
+
     switch (System.argv[1]) {
         case "install": {
             const modName = System.argv[2];
-            
         }
         case "uninstall": {
             const modName = System.argv[2];
-            const home = Env.get("HOME");
-            const dictuLocalModsPath = LOCAL_MODS.format(home);
 
             if (Path.exists("{}/{}".format(dictuLocalModsPath, modName))) {
                 System.rmdir(dictuLocalModsPath);
@@ -82,11 +97,22 @@ def parseModuleConfig(modPath) {
                 System.rmdir(GLOBAL_MODS);
             }
         }
-        case "modinfo": {
-            print(usage);
+        case "info": {
+            const modName = System.argv[2];
+            const modPath = findModule(modName).match(
+                def(result) => result,
+                def(error) => {
+                    print("{} module not found".format(modName));
+                    System.exit(0);
+            });
+
+            with(Path.join(modPath, MOD_DATA_FILE), 'r') {
+                const modInfo = JSON.parse(file.read()).unwrap();
+                print(modInfo);
+            }
         }
         case "help": {
-            print(usage);
+            print(USAGE);
         }
         case "version": {
             print("version: {}".format(VERSION));
