@@ -34,3 +34,5 @@ dictum uninstall slog
 
 * Use SQLite to keep track of installation information
 * Dependency management
+* Call out version conflicts
+* Manage updates/upgrades

@@ -28,7 +28,8 @@ const GLOBAL_MODS   = "/usr/local/lib/dictu",
       LOCAL_MODS    = "{}/.dictu",
       MOD_DATA_FILE = "dictum.json";
 
-// setupEnv
+// setupEnv checks for needed directories and creates them
+// if they don't exist.
 def setupEnv() {
     const home = Env.get("HOME");
     const dictuLocalModsPath = LOCAL_MODS.format(home);
@@ -42,7 +43,8 @@ def setupEnv() {
     }
 }
 
-// findModule
+// findModule searches the user and system paths for the 
+// given module.
 def findModule(name) {
     const home = Env.get("HOME");
     const dictuLocalModsPath = LOCAL_MODS.format(home);
@@ -57,7 +59,8 @@ def findModule(name) {
     return Error("{} not found".format(name));
 }
 
-// parseModuleConfig
+// parseModuleConfig reads in the path to given module,
+// reads the config file, and JSON.
 def parseModuleConfig(modPath) {
     const versionFile = modPath + "/dictum.json";
 
