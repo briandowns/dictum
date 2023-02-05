@@ -24,8 +24,7 @@ Examples:
     dictum info slog
 ";
 
-const GLOBAL_MODS   = "/usr/local/lib/dictu",
-      LOCAL_MODS    = "{}/.dictu",
+const LOCAL_MODS    = "{}/.dictu",
       MOD_DATA_FILE = "dictum.json";
 
 // setupEnv checks for needed directories and creates them
@@ -37,10 +36,6 @@ def setupEnv() {
     if (not Path.exists(dictuLocalModsPath)) {
         System.mkdir(dictuLocalModsPath);
     }
-
-    if (not Path.exists(GLOBAL_MODS)) {
-        System.mkdir(GLOBAL_MODS);
-    }
 }
 
 // findModule searches the user and system paths for the 
@@ -51,9 +46,6 @@ def findModule(name) {
 
     if (Path.exists("{}/{}".format(dictuLocalModsPath, name))) {
         return Success("{}/{}".format(dictuLocalModsPath, name));
-    }
-    if (Path.exists("{}/{}".format(GLOBAL_MODS, name))) {
-        return Success("{}/{}".format(GLOBAL_MODS, name));
     }
 
     return Error("{} not found".format(name));
@@ -76,8 +68,8 @@ def parseModuleConfig(modPath) {
 }
 
 { // main
-    var parser = Parser("prog_name", "Program to do all the things", "");
-    parser.addBool("-g", "install module globally", false, "global");
+    var parser = Parser("dictum", "Dictu package manager", "");
+    parser.addString("-r", "install module from repo", false, "repo");
 
     const args = parser.parse().match(
         def (result) => result,
