@@ -156,7 +156,8 @@ def loadConfig() {
                 print("Full download path: {}".format(downloadPath));
                 
                 //const downloadFile = Path.join(dictuLocalModsPath, githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch")).replace("https://", "").replace("archive/", ""));
-                const downloadFile = Path.join(dictuLocalModsPath, githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch")).replace("https://", "").replace("archive/", ""));
+                const tmp = githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch")).replace("https://", "").replace("archive/", "")
+                const downloadFile = Path.join(dictuLocalModsPath, );
                 print("Download file: {}".format(downloadFile));
                 System.exit(0);
                 System.mkdir(Path.dirname(fullModPath));
