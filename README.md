@@ -8,20 +8,14 @@ This is still a very simple implementation and makes a few naive assumptions, on
 
 This repository includes an example Dictu module called `slog`. It implements a JSON structured logger.
 
-On startup, Dictum will create top level module directories if they don't exist. For user modules, the `.dictu` is created in the user's home directory. Modules installed at the system level are installed to `/usr/local/lib/dictu`.
+On startup, Dictum will create a top level module directory if it doesn't exist.
 
 ### Examples 
 
-Install a module for the current user. 
+Install a module. 
 
 ```cs
 dictum install slog
-```
-
-Install a module system-wide.
-
-```cs
-dictum install -g slog
 ```
 
 When uninstalling modules, Dictum will search the user path and system module path for the given module.
