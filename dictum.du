@@ -8,24 +8,22 @@ import Process;
 import System;
 
 from Argparse import Parser;
-// https://github.com/briandowns/kahless/archive/refs/tags/v0.1.0.zip
+
+
 const version = "v0.1.0",
-      githubMasterUrl = "https://{}/archive/{}.zip",
-      githubTagUrl = "https://{}/archive/{}/refs/tags/{}.zip",
       usage = "Usage: dictum <command> <args>
 
 Options:
     install       install the given module
     uninstall     uninstall the given module
-    update        update the given module
-    info          get the info for the given module
+    create        create a packaged module
+    info          get info for an installed module
     help          help menu
     version       version information
 
 Examples: 
-    dictum install slog
+    dictum install slog.tgz
     dictum info slog
-    dictum install github.com/<org-user>/repo
 ";
 
 const localMods = "{}/.dictu/modules",
@@ -39,12 +37,12 @@ const dictuLocalModsPath = localMods.format(Env.get("HOME"));
  */
 def setupEnv() {
     if (not Path.exists(dictuLocalModsPath)) {
-        System.mkdir(dictuLocalModsPath);
+        System.mkdirAll(dictuLocalModsPath);
     }
 }
 
 /**
- * findModule searches the user and system paths for the 
+ * findModule searches the user home paths for the 
  * given module.
  */
 def findModule(name) {
@@ -74,14 +72,33 @@ def parseModuleConfig(modPath) {
 }
 
 /**
+ * validDictumJson checks to see if the given JSON
+ * contains the required fields.
+ */
+def validDictumJson(dictumFile) {
+    var modConfig;
+
+    with(dictumFile, 'r') {
+        modConfig = JSON.parse(file.read()).unwrap();
+    }
+
+    if (not modConfig.exists("name")) {
+        return Error("error: missing 'name' field")
+    }
+
+    if (not modConfig.exists("version")) {
+        return Error("error: missing 'version' field")
+    }
+
+    return Success(nil);
+}
+
+/**
  * loadConfig generates the base config from file and returns
  * a dictionary for use in the app.
  */
 def loadConfig() {
     var config = {
-        "git": {
-            "defaultBranch": "master"
-        },
         "http": {
             "insecure": true,
             "timeout": 21
@@ -95,11 +112,6 @@ def loadConfig() {
         userConfig = JSON.parse(file.read()).unwrap();
     }
 
-    if (userConfig.exists("git")) {
-        if (userConfig.get("git").exists("default_branch")) {
-            config["git"]["default_branch"] = userConfig.get("git").get("default_branch");
-        }
-    }
     if (userConfig.exists("http")) {
         if (userConfig.get("http").exists("timeout")) {
             config["http"]["timeout"] = userConfig.get("http").get("timeout");
@@ -129,66 +141,22 @@ def loadConfig() {
                 System.exit(1);
             }
 
-            const modName = Path.basename(System.argv[System.argv.len()-1]);
+            const module = System.argv[System.argv.len()-1];
+            if (not module.contains(".tgz")) {
+                print("{} missing required extension (.tgz)".format(modName));
+                System.exit(1);
+            }
+
+            const modName = Path.basename(module).replace(".tgz", "");
             const res = findModule(modName);
             if (res.success()) {
                 print("{} already installed".format(modName));
                 System.exit(1);
             }
 
-            var remoteRepo;
-            var fullModPath;
-
-            if (System.argv[2].lower().contains("github")) {
-                remoteRepo = System.argv[2].lower();
-
-                fullModPath = Path.join(dictuLocalModsPath, remoteRepo);
-                print("Full Mod Path     : {}".format(fullModPath));
-                
-
-                const opts = {
-                    "timeout": config.get("http").get("timeout"),
-                    "insecure": config.get("http").get("insecure")
-                };
-                var httpClient = HTTP.newClient(opts);
-
-                const downloadPath = githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch"));
-                print("Full download path: {}".format(downloadPath));
-                
-                //const downloadFile = Path.join(dictuLocalModsPath, githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch")).replace("https://", "").replace("archive/", ""));
-                const tmp = githubMasterUrl.format(System.argv[2], config.get("git").get("default_branch")).replace("https://", "").replace("archive/", "")
-                const downloadFile = Path.join(dictuLocalModsPath, );
-                print("Download file: {}".format(downloadFile));
-                System.exit(0);
-                System.mkdir(Path.dirname(fullModPath));
-
-                const res = httpClient.get(downloadPath);
-                const result = res.unwrap();
-
-                with(downloadFile, "wb") {
-                    file.write(result.content);
-                }
-
-                print(fullModPath+".zip");
-
-                with(fullModPath+".zip", "wb") {
-                    file.write(result.content);
-                }
-
-                Process.run(["unzip", fullModPath]).unwrap();
-            }
-
-            Path.listDir(fullModPath).forEach(def(f) => {
-                const srcModFile = Path.join(modName, f);
-                const dstModFile = Path.join(fullModPath, f);
-
-                System.copyFile(srcModFile, dstModFile).match(
-                    def(_) => _,
-                    def(error) => {
-                        print(error);
-                        System.exit(1);
-                    }
-                );
+            Process.run(["tar", "xfz", "{}.tgz".format(modName), "-C", dictuLocalModsPath], false).matchError(def(error) => {
+                print(error);
+                System.exit(1);
             });
         }
         case "uninstall": {
@@ -207,15 +175,36 @@ def loadConfig() {
             );
 
             Path.listDir(modPath).forEach(
-                def(f) => {
-                    System.remove(Path.join(modPath, f));
-                }
+                def(f) => { System.remove(Path.join(modPath, f)); }
             );
-
+            
             System.rmdir(modPath);
         }
-        case "update": {
-            // 
+        case "create": {
+            if (System.argv.len() != 3) {
+                print("error: missing module name");
+                System.exit(1);
+            }
+
+            const modName = System.argv[2];
+
+            if (not Path.exists(modName) or not Path.isDir(modName)) {
+                print("error: invalid module argument");
+                System.exit(1);  
+            }
+
+            if (not validDictumJson(Path.join(modName, "dictum.json"))) {
+                // 
+            }
+
+            const fullModPath = Path.join(dictuLocalModsPath, modName);
+
+            Process.run(["tar", "cfz", "{}.tgz".format(modName), modName], false).matchError(def(error) => {
+                print(error);
+                System.exit(1);
+            });
+
+            print("module created: {}.tgz".format(modName));
         }
         case "info": {
             if (System.argv.len() != 3) {

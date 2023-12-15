@@ -15,7 +15,7 @@ On startup, Dictum will create a top level module directory if it doesn't exist.
 Install a module. 
 
 ```cs
-dictum install slog
+dictum install slog.tgz
 ```
 
 When uninstalling modules, Dictum will search the user path and system module path for the given module.
