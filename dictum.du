@@ -83,11 +83,11 @@ def validDictumJson(dictumFile) {
     }
 
     if (not modConfig.exists("name")) {
-        return Error("error: missing 'name' field")
+        return Error("error: missing 'name' field");
     }
 
     if (not modConfig.exists("version")) {
-        return Error("error: missing 'version' field")
+        return Error("error: missing 'version' field");
     }
 
     return Success(nil);
@@ -140,10 +140,10 @@ def loadConfig() {
                 print("error: missing module name");
                 System.exit(1);
             }
-
+            
             const module = System.argv[System.argv.len()-1];
             if (not module.contains(".tgz")) {
-                print("{} missing required extension (.tgz)".format(modName));
+                print("{} missing required extension (.tgz)".format(module));
                 System.exit(1);
             }
 
@@ -193,9 +193,12 @@ def loadConfig() {
                 System.exit(1);  
             }
 
-            if (not validDictumJson(Path.join(modName, "dictum.json"))) {
-                // 
-            }
+            validDictumJson(Path.join(modName, "dictum.json")).matchError(
+                def(error) => {
+                    print(error);
+                    System.exit(1);
+                }
+            );
 
             const fullModPath = Path.join(dictuLocalModsPath, modName);
 
@@ -204,7 +207,7 @@ def loadConfig() {
                 System.exit(1);
             });
 
-            print("module created: {}.tgz".format(modName));
+            print("module created: {}.tgzß".format(modName));
         }
         case "info": {
             if (System.argv.len() != 3) {
