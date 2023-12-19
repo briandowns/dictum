@@ -4,9 +4,9 @@ Dictum is an opinionated package manaager for [Dictu](github.com/Dictu-lang/Dict
 
 ## Usage
 
-This repository includes an example Dictu module called `slog`. It implements a JSON structured logger.
+**NOTE:** This repository includes an example Dictu module called `slog`. It implements a JSON structured logger.
 
-On startup, Dictum will create a top level module directory if it doesn't exist.
+On startup, Dictum will create a top level module directory if it doesn't exist: `${PWD}/dictu_modules` .
 
 `Dictum` expects modules to be packaged in a directory that has been tar'd and gzip'd with an extension of `.tgz`. 
 
