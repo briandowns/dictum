@@ -26,18 +26,21 @@ Examples:
     dictum info slog
 ";
 
-const localMods = "{}/.dictu/modules",
-      modDataFile = "dictum.json";
-
-const dictuLocalModsPath = localMods.format(Env.get("HOME"));
+const localMods = "dictu_modules",
+      modDataFile = "dictum.json",
+      modsConfigPath = "{}/.dictu";
 
 /**
  * setupEnv checks for needed directories and creates them
  * if they don't exist.
  */
 def setupEnv() {
-    if (not Path.exists(dictuLocalModsPath)) {
-        System.mkdirAll(dictuLocalModsPath);
+    if (not Path.exists(localMods)) {
+        System.mkdirAll(localMods);
+    }
+
+    if (not Path.exists(localMods)) {
+        System.mkdirAll(localMods);
     }
 }
 
@@ -46,8 +49,8 @@ def setupEnv() {
  * given module.
  */
 def findModule(name) {
-    if (Path.exists("{}/{}".format(dictuLocalModsPath, name))) {
-        return Success("{}/{}".format(dictuLocalModsPath, name));
+    if (Path.exists("{}/{}".format(localMods, name))) {
+        return Success("{}/{}".format(localMods, name));
     }
 
     return Error("{} not found".format(name));
@@ -57,8 +60,8 @@ def findModule(name) {
  * parseModuleConfig receives a for the given module,
  * reads the config file, and returns the JSON.
  */
-def parseModuleConfig(modPath) {
-    const versionFile = modPath + Path.dirSeparator + modDataFile;
+def parseModuleConfig() {
+    const versionFile = localMods + Path.dirSeparator + modDataFile;
 
     with(versionFile, "r") {
         return config = JSON.parse(file.read()).match(
@@ -105,7 +108,7 @@ def loadConfig() {
         }
     };
 
-    const configFilePath = Path.join(dictuLocalModsPath, "config.json");
+    const configFilePath = Path.join(modsConfigPath.format(Env.get("HOME")), "dictum_config.json");
     
     var userConfig;
     with(configFilePath, 'r') {
@@ -154,7 +157,7 @@ def loadConfig() {
                 System.exit(1);
             }
 
-            Process.run(["tar", "xfz", "{}.tgz".format(modName), "-C", dictuLocalModsPath], false).matchError(def(error) => {
+            Process.run(["tar", "xfz", "{}.tgz".format(modName), "-C", localMods], false).matchError(def(error) => {
                 print(error);
                 System.exit(1);
             });
@@ -200,7 +203,7 @@ def loadConfig() {
                 }
             );
 
-            const fullModPath = Path.join(dictuLocalModsPath, modName);
+            const fullModPath = Path.join(localMods, modName);
 
             Process.run(["tar", "cfz", "{}.tgz".format(modName), modName], false).matchError(def(error) => {
                 print(error);
