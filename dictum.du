@@ -210,7 +210,7 @@ def loadConfig() {
                 System.exit(1);
             });
 
-            print("module created: {}.tgzß".format(modName));
+            print("module created: {}.tgz".format(modName));
         }
         case "info": {
             if (System.argv.len() != 3) {
@@ -226,10 +226,15 @@ def loadConfig() {
                     System.exit(0);
             });
 
+            var modInfo;
             with(Path.join(modPath, modDataFile), 'r') {
-                const modInfo = JSON.parse(file.read()).unwrap();
-                print(modInfo);
+                modInfo = JSON.parse(file.read()).unwrap();
             }
+
+            print("Name:        {}".format(modInfo["name"]));
+            print("Version:     {}".format(modInfo["version"]));
+            print("Maintainers: {}".format(modInfo["maintainers"]["name"]));
+            print("License:     {}".format(modInfo["license"]));
         }
         case "help": {
             print(usage);

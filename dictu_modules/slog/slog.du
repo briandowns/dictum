@@ -1,0 +1,68 @@
+// Module slog provides a structured logger. The structured
+// format is JSON. 
+
+import json;
+
+
+// class Log implements a simple structured logger
+// that outputs to either stdout or a given file. 
+class Log {
+    private output;
+    
+    init(output="") {
+        this.output = "";
+        if (output.len() > 1) {
+            this.output = output;
+        }
+    }
+
+    private set_level(level) {
+        this.entry = {"level": level};
+    }
+
+    private run(msg, fields) {
+        if (fields) {
+            let keys = fields.keys();
+            for (let i = 0; i < keys.len(); i += 1) {
+                this.entry[keys[i]] = fields[keys[i]];
+            }
+        } else {
+            this.entry["msg"] = msg;
+        }
+
+        let j = json.parse(this.entry.to_string());
+
+        if (this.output.len() > 1) {
+            with(this.output, "w") {
+                file.writeLine(j.unwrap().to_string());
+            }
+        } else {
+            print(j.unwrap());
+        }
+    }
+
+    info(msg, fields=nil) {
+        this.set_level("info");
+        this.run(msg, fields);
+    }
+
+    warn(msg, fields=nil) {
+        this.set_level("warn");
+        this.run(msg, fields);
+    }
+
+    error(msg, fields=nil) {
+        this.set_level("error");
+        this.run(msg, fields);
+    }
+
+    debug(msg, fields=nil) {
+        this.set_level("debug");
+        this.run(msg, fields);
+    }
+
+    trace(msg, fields=nil) {
+        this.set_level("trace");
+        this.run(msg, fields);
+    }
+}
