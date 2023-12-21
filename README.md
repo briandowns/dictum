@@ -10,28 +10,45 @@ On startup, Dictum will create a top level module directory if it doesn't exist:
 
 `Dictum` expects modules to be packaged in a directory that has been tar'd and gzip'd with an extension of `.tgz`. 
 
-### Examples 
+### Examples
 
-Install a module. 
+Create a module. The command below will create a new module from the given directory name. The result will be the a tar'd and gzip'd file named `<module_name.tgz`.
 
-```cs
+```sh
+dictum create <dir_with_dictu_code>
+```
+
+Install a module. You can install a module from the local file system or from Github. 
+
+```sh
 dictum install <module_name>.tgz
+```
+
+```sh
+dictum install github.com/briandowns/wanbli
 ```
 
 When uninstalling modules, Dictum will search the user path for the given module.
 
-```cs
+```sh
 dictum uninstall <module_name>
 ```
 
 Get Informtion on a Module
 
-```cs
+```sh
 dictum info <module_name>
 ```
 
-## Future Considerations
+### Config
 
-* Dependency management
-* Manage updates/upgrades
-* Pull remote modues
+You can provide additional config to `dictum` by setting a couple environment variables, `DICTUM_HTTP_TIMEOUT` and `DICTUM_HTTP_INSECURE`. These will be used when making calls to Github.
+
+## Contact
+
+Brian Downs [@bdowns328](http://twitter.com/bdowns328)
+
+## License
+
+dictum source code is available under the BSD 3 Clause [License](/LICENSE).
+
