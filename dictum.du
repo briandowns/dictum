@@ -7,8 +7,6 @@ import Path;
 import Process;
 import System;
 
-from Argparse import Parser;
-
 
 const version = "v0.1.0",
       usage = "Usage: dictum <command> <args>
@@ -23,22 +21,18 @@ Options:
 
 Examples: 
     dictum install slog.tgz
+    dictum install github.com/briandowns/wanbli
     dictum info slog
 ";
 
 const localMods = "dictu_modules",
-      modDataFile = "dictum.json",
-      modsConfigPath = "{}/.dictu";
+      modDataFile = "dictum.json";
 
 /**
  * setupEnv checks for needed directories and creates them
  * if they don't exist.
  */
 def setupEnv() {
-    if (not Path.exists(localMods)) {
-        System.mkdirAll(localMods);
-    }
-
     if (not Path.exists(localMods)) {
         System.mkdirAll(localMods);
     }
@@ -101,30 +95,12 @@ def validDictumJson(dictumFile) {
  * a dictionary for use in the app.
  */
 def loadConfig() {
-    var config = {
+    return {
         "http": {
-            "insecure": true,
-            "timeout": 21
+            "insecure": Env.get("DICTUM_HTTP_INSECURE", "true"),
+            "timeout": Env.get("DICTUM_HTTP_TIMEOUT", "20")
         }
     };
-
-    const configFilePath = Path.join(modsConfigPath.format(Env.get("HOME")), "dictum_config.json");
-    
-    var userConfig;
-    with(configFilePath, 'r') {
-        userConfig = JSON.parse(file.read()).unwrap();
-    }
-
-    if (userConfig.exists("http")) {
-        if (userConfig.get("http").exists("timeout")) {
-            config["http"]["timeout"] = userConfig.get("http").get("timeout");
-        }
-        if (userConfig.get("http").exists("insecure")) {
-            config["http"]["insecure"] = userConfig.get("http").get("insecure");
-        }
-    }
-
-    return config;
 }
 
 { // main
@@ -132,8 +108,6 @@ def loadConfig() {
         print(usage);
         System.exit(1);
     }
-
-    setupEnv();
 
     const config = loadConfig();
 
@@ -143,8 +117,41 @@ def loadConfig() {
                 print("error: missing module name");
                 System.exit(1);
             }
+
+            setupEnv();
             
-            const module = System.argv[System.argv.len()-1];
+            var module;
+            var fromGit = false;
+
+            if (System.argv[System.argv.len()-1].contains("github")) {
+                const modUrl = System.argv[System.argv.len()-1];
+                const tmpMod = modUrl.split("/");
+                module = tmpMod[tmpMod.len()-1];
+
+                const co = {
+                    "timeout": config["http"]["timeout"].toNumber().unwrap(),
+                    "insecure": config["http"]["insecure"].toBool()
+                };
+                print(co);
+                const gh = HTTP.newClient(co);
+
+                const res = HTTP.get(modUrl+"/tarball/master").matchError(
+                    def(error) => {
+                        print(error);
+                        System.exit(1);
+                    }
+                );
+                
+                module += ".tgz";
+                with(module, "wb") {
+                    file.write(res.content);
+                }
+
+                fromGit = true;
+            }else {
+                module = System.argv[System.argv.len()-1];
+            }
+
             if (not module.contains(".tgz")) {
                 print("{} missing required extension (.tgz)".format(module));
                 System.exit(1);
@@ -161,6 +168,13 @@ def loadConfig() {
                 print(error);
                 System.exit(1);
             });
+
+            if (fromGit) {
+                const modDir = Path.listDir(localMods).filter(def(d) => d.contains(modName))[0];
+                System.rename(Path.join(localMods, modDir), Path.join(localMods, modName));
+            }
+
+            System.remove(module);
         }
         case "uninstall": {
             if (System.argv.len() < 3) {
