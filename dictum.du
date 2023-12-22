@@ -121,10 +121,15 @@ def loadConfig() {
             setupEnv();
             
             var module;
+            var version;
             var fromGit = false;
 
-            if (System.argv[System.argv.len()-1].contains("github")) {
-                const modUrl = System.argv[System.argv.len()-1];
+            if (System.argv.len() == 4) {
+                version = System.argv[3];
+            }
+
+            if (System.argv[2].contains("github")) {
+                const modUrl = System.argv[2];
                 const tmpMod = modUrl.split("/");
                 module = tmpMod[tmpMod.len()-1];
 
@@ -132,10 +137,16 @@ def loadConfig() {
                     "timeout": config["http"]["timeout"].toNumber().unwrap(),
                     "insecure": config["http"]["insecure"].toBool()
                 };
-                print(co);
                 const gh = HTTP.newClient(co);
 
-                const res = HTTP.get(modUrl+"/tarball/master").matchError(
+                var fullModUrl = modUrl;
+                if (version != "") {
+                    fullModUrl += "/tarball/" + version;
+                } else {
+                    fullModUrl += "/tarball/master";
+                }
+
+                const res = HTTP.get(fullModUrl).matchError(
                     def(error) => {
                         print(error);
                         System.exit(1);

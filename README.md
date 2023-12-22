@@ -18,7 +18,7 @@ Create a module. The command below will create a new module from the given direc
 dictum create <dir_with_dictu_code>
 ```
 
-Install a module. You can install a module from the local file system or from Github. 
+Install a module. You can install a module from the local file system or from Github. Additionally, if you install from Github you can specify a tag to install.
 
 ```sh
 dictum install <module_name>.tgz
@@ -26,6 +26,10 @@ dictum install <module_name>.tgz
 
 ```sh
 dictum install github.com/briandowns/wanbli
+```
+
+```sh
+dictum install github.com/briandowns/colorize v0.1.0
 ```
 
 When uninstalling modules, Dictum will search the user path for the given module.
