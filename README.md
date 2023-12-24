@@ -10,7 +10,14 @@ On startup, Dictum will create a top level module directory if it doesn't exist:
 
 `Dictum` expects modules to be packaged in a directory that has been tar'd and gzip'd with an extension of `.tgz`. 
 
-### Examples
+
+## Install 
+
+```sh
+sudo make install
+```
+
+## Examples
 
 Create a module. The command below will create a new module from the given directory name. The result will be the a tar'd and gzip'd file named `<module_name.tgz`.
 
