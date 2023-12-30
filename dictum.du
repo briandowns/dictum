@@ -121,8 +121,8 @@ def loadConfig() {
             setupEnv();
             
             var module;
-            var version;
             var fromGit = false;
+            var version = "/master";
 
             if (System.argv.len() == 4) {
                 version = System.argv[3];
@@ -139,13 +139,8 @@ def loadConfig() {
                 };
                 const gh = HTTP.newClient(co);
 
-                var fullModUrl = modUrl;
-                if (version != "") {
-                    fullModUrl += "/tarball/" + version;
-                } else {
-                    fullModUrl += "/tarball/master";
-                }
-
+                var fullModUrl = modUrl + "/tarball" + "/" +version;
+                print(fullModUrl);
                 const res = HTTP.get(fullModUrl).matchError(
                     def(error) => {
                         print(error);
